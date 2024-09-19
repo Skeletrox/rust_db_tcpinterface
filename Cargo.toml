@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-protobuf = "3"
+prost = "0.13"
+prost-types = "0.13"
 rand = "0.8"
+tokio = { version = "1", features = ["full"] }
 rust_db_xthreadstore = { git = "https://github.com/Skeletrox/rust_db_xthreadstore", branch = "main" }
 rust_db_proto = { git = "https://github.com/Skeletrox/rust_db_proto", branch = "main" }

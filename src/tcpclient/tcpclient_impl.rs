@@ -1,7 +1,9 @@
-use std::io::prelude::*;
-use std::net::TcpStream;
-use protobuf::{EnumOrUnknown, Message};
-use rust_db_proto::proto::messages::{RequestType, Request};
+use std::io::Bytes;
+
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
+use prost::Message;
+use rust_db_proto::proto::{Request, RequestType};
 
 
 pub struct TcpClient {
@@ -13,13 +15,18 @@ impl TcpClient {
         TcpClient {}
     }
 
-    pub fn send_message(&self, addr: String) -> std::io::Result<()> {
-        let mut stream = TcpStream::connect(addr).expect("Could not connect to host!");
-        let mut request = Request::new();
-        request.req_type = EnumOrUnknown::new(RequestType::PING);
+    pub async fn send_message(&self, addr: String) -> std::io::Result<()> {
+        let mut stream = TcpStream::connect(addr).await?;
+        let mut request = Request::default();
+        request.set_req_type(RequestType::Ping);
         request.payload = Some("Hello".to_string());
         println!("Sending: {request:#?}");
-        stream.write(&request.write_to_bytes().unwrap())?;
+        let mut bytes = vec![];
+        request.encode_length_delimited(&mut bytes).unwrap();
+        let n = request.encoded_len();
+        println!("Bytes: {bytes:#?}, len: {n:#?}");
+        stream.write_all(&bytes[..]).await?;
         Ok(())
     }
+
 }
